@@ -23,6 +23,13 @@ Twitter right from the comfy confines of your Emacs session.")
 ;;
 ;; (parakeet-public-timeline) - Displays the public Twitter timeline
 
+;; Customizable variables
+
+(defcustom parakeet-date-format "%m/%d/%Y %I:%M %p"
+  "The format used when displaying dates from Twitter"
+  :type 'string
+  :group 'parakeet-mode)
+
 ;; required packages
 (require 'parakeet)
 
@@ -31,35 +38,67 @@ Twitter right from the comfy confines of your Emacs session.")
   "The name of the buffer that Parakeet uses to display the
 public Twitter timeline.")
 
+(define-derived-mode parakeet-mode
+  text-mode "Parakeet"
+  "Major mode for Twitter."
+  (setq case-fold-search nil))
+
+(put 'parakeet-mode 'mode-class 'special)
+
 (defun parakeet-handle-error (error-in)
   "Informs the user that an error occurred via the minibuffer"
   (message "%s" 
 	   (concat "I couldn't communicate with Twitter. "
 
 			   ;; if we have an error message, display it
-			   (if (car (cdr error-in))
+			   (if (and (car (cdr error-in)) 
+				    (stringp (car (cdr error-in))))
 				   (car (cdr error-in)))))
   error-in)
 
-(defun parakeet-print-tweet (tweet buffer-in)
-  "Prints the tweet to the buffer provided"
+(defun parakeet-format-twitter-date (date-in)
+  "Formats a date from Twitter for display."
+  (format-time-string parakeet-date-format (date-to-time date-in)))
+
+(defun parakeet-format-date (date-in)
+  "Formats a date from for display."
+  (format-time-string parakeet-date-format date-in))
+
+(defun parakeet-print-tweet (tweet)
+  "Inserts the Tweet into the current buffer."
 
   ;; pull our variables from the tweet
   (let* ((prkt-user (parakeet-tweet-value 'user tweet))
 		 (prkt-user-name (parakeet-tweet-value 'name prkt-user))
 		 (prkt-tweet (parakeet-tweet-value 'text tweet))
 		 (prkt-source (parakeet-tweet-value 'source tweet))
-		 (prkt-time (parakeet-tweet-value 'created_at tweet)))
+		 (prkt-time (parakeet-tweet-value 'created_at tweet))
+		 (prkt-point-start (point)))
 
 	;; print the tweet to the buffer
-	(princ prkt-user-name buffer-in)
-	(princ '": " buffer-in)
-	(princ prkt-tweet buffer-in)
-	(terpri buffer-in)
-	(princ prkt-time buffer-in)
-	(princ '", from " buffer-in)
-	(princ prkt-source buffer-in)
-	(terpri buffer-in)))
+	(insert (propertize prkt-user-name 
+			    'face `(foreground-color . "#ABC8E2")))
+	(insert '": ")
+	(insert (propertize prkt-tweet 
+			    'face `(foreground-color . "#ffffff")))
+	(insert (propertize
+		 (propertize
+		  (concat '" at " (parakeet-format-twitter-date prkt-time) 
+			  '", from" prkt-source) 
+		  'face 'italic)
+		 'face `(foreground-color . "#375D81")))	       
+	;; fill the paragraph
+	(fill-region prkt-point-start (point))
+	(newline)))
+
+(defun parakeet-insert-header (header-in)
+  "Insert a header with the supplied text into the current buffer"
+  (insert (propertize 
+	   (propertize (concat "  " header-in "  " 
+			       (parakeet-format-date (current-time)))
+		       'face `(foreground-color . "#FFFFFF"))
+	   'face `(background-color . "#183152")))
+  (newline))
 
 (defun parakeet-print-public-timeline (twitter-data)
   "Displays the public Twitter timeline"
@@ -72,12 +111,17 @@ public Twitter timeline.")
   (let ((twitter-out (get-buffer-create parakeet-public-timeline-buffer-name)))
 	(save-excursion
 	  (set-buffer twitter-out)
+	  (parakeet-mode)
 	  (goto-char (point-min))
+
+	  ;; insert a header
+	  (parakeet-insert-header "Twitter Public Timeline")
+	  (terpri twitter-out)
 
 	  ;; loop through the tweets
 	  (let ((index 0))
 		(while (< index (length twitter-data))
-		  (parakeet-print-tweet (elt twitter-data index) twitter-out)
+		  (parakeet-print-tweet (elt twitter-data index))
 		  (terpri twitter-out)
 		  (setq index (1+ index))))
 	  (setq buffer-read-only t))
@@ -111,6 +155,8 @@ public Twitter timeline.")
 (provide 'parakeet-mode)
 
 ;; Test code starts here!
+
+(custom-set-variables '(parakeet-socks-proxy nil))
 
 (parakeet-public-timeline)
 

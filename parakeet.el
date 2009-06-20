@@ -39,7 +39,7 @@
   :type 'string
   :group 'parakeet)
 
-(defcustom parakeet-socks-proxy "http://localhost:9080"
+(defcustom parakeet-socks-proxy nil
   "Your SOCKS4 proxy server."
   :type 'string
   :group 'parakeet)
@@ -51,8 +51,10 @@
   "Twitter Public Timeline URL")
 
 (defconst parakeet-curl-args
-  (list "--insecure"
-	"--socks4" parakeet-socks-proxy)
+  (append
+   (list "--insecure")
+   (if parakeet-socks-proxy
+       (list "--socks4" parakeet-socks-proxy)))
   "Arguments to pass to curl when contacting the Twitter webservice.")
 
 ;; Package errors
@@ -70,23 +72,24 @@ tweets on the Twitter public timeline"
   (let ((json-data nil))
     (save-excursion
 
-	  ;; pass our arguments to curl and grab the returned buffer
+      ;; pass our arguments to curl and grab the returned buffer
       (let ((buffer-temp (libcurl parakeet-curl-args 
-								  parakeet-public-timeline-url)))
+				  parakeet-public-timeline-url)))
 
-		;; if curl returns an error, signal an error of our own
-		(if (libcurl-errorp buffer-temp)
-			(let* ((error-message (libcurl-error-code-description buffer-temp)))
-			  (kill-buffer buffer-temp)
-			  (signal 'communication-error (list error-message)))
+	;; if curl returns an error, signal an error of our own
+	(if (libcurl-errorp buffer-temp)
+	    (let* ((error-message (libcurl-error-code-description 
+				   buffer-temp)))
+	      (kill-buffer buffer-temp)
+	      (signal 'communication-error (list error-message)))
 
-		  ;; consume the data in the buffer and then kill it
-		  (progn
-			(set-buffer buffer-temp)
-			(goto-char (point-min))
-			(setq json-data (json-read))
-			(kill-buffer buffer-temp)))))
-	json-data))
+	  ;; consume the data in the buffer and then kill it
+	  (progn
+	    (set-buffer buffer-temp)
+	    (goto-char (point-min))
+	    (setq json-data (json-read))
+	    (kill-buffer buffer-temp)))))
+    json-data))
 
 (defun parakeet-tweet-value (key tweet)
   "Returns the value that matches the key in the given tweet or
@@ -95,18 +98,18 @@ key."
 
   ;; setup variables to hold the value and the tweet
   (let ((result nil)
-		(tweet-in tweet))
+	(tweet-in tweet))
 
-	;; loop through the tweets, looking for the jey
-	(while (car tweet-in)
+    ;; loop through the tweets, looking for the jey
+    (while (car tweet-in)
 
-	  ;; if they match, save the result and nil the tweet to stop
-	  ;; looping
-	  (if (string= (car (car tweet-in)) key)
-		  (progn
-			(setq result (cdr (car tweet-in)))
-			(setq tweet-in nil))
-		(setq tweet-in (cdr tweet-in))))
-	result))
+      ;; if they match, save the result and nil the tweet to stop
+      ;; looping
+      (if (string= (car (car tweet-in)) key)
+	  (progn
+	    (setq result (cdr (car tweet-in)))
+	    (setq tweet-in nil))
+	(setq tweet-in (cdr tweet-in))))
+    result))
 
 (provide 'parakeet)
