@@ -16,7 +16,13 @@ Twitter right from the comfy confines of your Emacs session.")
 ;; Installation: Put this file somewhere in your load-path and then
 ;; add the following to your initialization file:
 
-;; (require 'parakeet-mode)
+;; (add-to-list 'load-path "~/.emacs.d/site-lisp/parakeet")
+;; (load "~/.emacs.d/site-lisp/parakeet/autoload.el")
+
+;; That will oad in the parakeet-mode code and get it ready for use if
+;; you have a proxy server, you can set that as well...
+
+;; (custom-set-variables '(parakeet-socks-proxy "http://localhost:9080"))
 
 ;; This package isn't complete yet. Right now, the following functions
 ;; are available:
