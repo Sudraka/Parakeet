@@ -117,16 +117,16 @@ public Twitter timeline.")
 
     ;; print the tweet to the buffer
     (insert (propertize "%tweet-start%" 'invisible 't 'face 
-			`(foreground-color . (gethash 'user parakeet-theme))))
+			(list :foreground (gethash 'user parakeet-theme))))
     (insert (propertize "%user%" 'invisible 't 'face 
-			`(foreground-color . (gethash 'user parakeet-theme))))
+			(list :foreground (gethash 'user parakeet-theme))))
     (insert (propertize prkt-user-name 'face 
-			`(foreground-color . (gethash 'user parakeet-theme))))
+			(list :foreground (gethash 'user parakeet-theme))))
     (insert (propertize "%user%" 'invisible 't))
     (insert '": ")
     (insert (propertize "%tweet%" 'invisible 't))
     (insert (propertize prkt-tweet 'face 
-			`(foreground-color . (gethash 'tweet parakeet-theme))))
+			(list :foreground (gethash 'tweet parakeet-theme))))
     (insert (propertize "%tweet%" 'invisible 't))
     (insert (propertize "%meta%" 'invisible 't))
     (insert (propertize
@@ -134,26 +134,13 @@ public Twitter timeline.")
 	      (concat '" at " (parakeet-format-twitter-date prkt-time) 
 		      '", from " (parakeet-format-source prkt-source))
 	      'face 'italic) 'face 
-	      `(foreground-color . (gethash 'meta parakeet-theme))))
+	      (list :foreground (gethash 'meta parakeet-theme))))
     (insert (propertize "%meta%" 'invisible 't))
     (insert (propertize "%tweet-end%" 'invisible 't))
     (insert (propertize " " 'invisible nil))
 
     ;; fill the paragraph
     (fill-region prkt-point-start (point))))
-
-(parakeet-public-timeline)
-
-
-(list 'foreground-color . (gethash 'meta parakeet-theme))
-
-
-`(foreground-color . "#FFFFFF")
-(foreground-color . "#FFFFFF")
-
-(foreground-color gethash (quote meta) parakeet-theme)
-
-
 
 (defun parakeet-insert-header (header-in)
   "Insert a header with the supplied text into the current buffer"
@@ -220,14 +207,14 @@ public Twitter timeline.")
 
 ;; Test code starts here!
 
-(custom-set-variables '(parakeet-socks-proxy nil))
+;(custom-set-variables '(parakeet-socks-proxy nil))
 
-(parakeet-public-timeline)
+;(parakeet-public-timeline)
 
-(setq testhash
-)
-#<hash-table 'eql nil 5/65 0x16c6c500>
-(gethash 'user testhash)
-"#ABCAE2"
+;(setq testhash
+;)
+;#<hash-table 'eql nil 5/65 0x16c6c500>
+;(gethash 'user testhash)
+;"#ABCAE2"
 
 

@@ -50,19 +50,19 @@
   "https://twitter.com/statuses/public_timeline.json"
   "Twitter Public Timeline URL")
 
-(defconst parakeet-curl-args
-  (append
-   (list "--insecure")
-   (if parakeet-socks-proxy
-       (list "--socks4" parakeet-socks-proxy)))
-  "Arguments to pass to curl when contacting the Twitter webservice.")
-
 ;; Package errors
 
 ;; this is our general "I can't get Twitter on the line" error
 (put 'communication-error
      'error-conditions
      '(error parakeet-errors 'communication-error))
+
+(defun parakeet-curl-args ()
+  "Returns the arguments to use when invoking curl."
+  (append
+   (list "--insecure")
+   (if parakeet-socks-proxy
+       (list "--socks4" parakeet-socks-proxy))))
 
 (defun parakeet-public-timeline-data ()
   "Returns an array of data that contains the twenty most recent
@@ -73,7 +73,7 @@ tweets on the Twitter public timeline"
     (save-excursion
 
       ;; pass our arguments to curl and grab the returned buffer
-      (let ((buffer-temp (libcurl parakeet-curl-args 
+      (let ((buffer-temp (libcurl (parakeet-curl-args)
 				  parakeet-public-timeline-url)))
 
 	;; if curl returns an error, signal an error of our own
