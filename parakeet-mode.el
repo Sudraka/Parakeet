@@ -53,13 +53,38 @@ Twitter right from the comfy confines of your Emacs session.")
   :type 'hash-table
   :group 'parakeet-mode)
 
+;; Constants
+
+(defconst parakeet-headers
+  (let ((hash (make-hash-table :test 'eql)))
+    (puthash 'public "Twitter Public Timeline" hash)
+    (puthash 'friend "Twitter Friend Timeline" hash)
+    hash)
+  "A hash of headings for the Twitter output.")
+
+(defconst parakeet-buffer-names
+  (let ((hash (make-hash-table :test 'eql)))
+    (puthash 'public "*parakeet-public-timeline*" hash)
+    (puthash 'friend "*parakeet-firend-timeline*" hash)
+    hash)
+  "A hash of buffer names for the Twitter output.")
+
+(defconst parakeet-data-functions
+  (let ((hash (make-hash-table :test 'eql)))
+    (puthash 'public 'parakeet-public-timeline-data hash)
+    (puthash 'friend 'parakeet-friend-timeline-data hash)
+    hash)
+  "A hash of functions that retrieve Twitter data.")
+
+(defconst parakeet-fetch-messages
+  (let ((hash (make-hash-table :test 'eql)))
+    (puthash 'public "Fetching the public Twitter timeline..." hash)
+    (puthash 'friend "Fetching your friend Twitter timeline..." hash)
+    hash)
+  "A hash of status messages to display while fetching Twitter data.")
+
 ;; required packages
 (require 'parakeet)
-
-(defconst parakeet-public-timeline-buffer-name
-  "*parakeet-public-timeline*"
-  "The name of the buffer that Parakeet uses to display the
-public Twitter timeline.")
 
 (define-derived-mode parakeet-mode
   text-mode "Parakeet"
@@ -70,13 +95,13 @@ public Twitter timeline.")
 
 (defun parakeet-handle-error (error-in)
   "Informs the user that an error occurred via the minibuffer"
-  (message "%s" 
-	   (concat "I couldn't communicate with Twitter. "
+  (message "%s"
+       (concat "I couldn't communicate with Twitter. "
 
-		   ;; if we have an error message, display it
-		   (if (and (car (cdr error-in)) 
-			    (stringp (car (cdr error-in))))
-		       (car (cdr error-in)))))
+           ;; if we have an error message, display it
+           (if (and (car (cdr error-in))
+                (stringp (car (cdr error-in))))
+               (car (cdr error-in)))))
   error-in)
 
 (defun parakeet-format-twitter-date (date-in)
@@ -101,8 +126,8 @@ public Twitter timeline.")
   "Returns the anchor target portion of a valid URL"
   (nth 1
        (split-string
-	(nth 1 (split-string 
-		(nth 1 (split-string url-in "[<>]")) "=")) "\"")))
+    (nth 1 (split-string
+        (nth 1 (split-string url-in "[<>]")) "=")) "\"")))
 
 (defun parakeet-format-source (tweet-source)
   "Returns the source in a format for display."
@@ -115,32 +140,32 @@ public Twitter timeline.")
 
   ;; pull our variables from the tweet
   (let* ((prkt-user (parakeet-tweet-value 'user tweet))
-	 (prkt-user-name (parakeet-tweet-value 'name prkt-user))
-	 (prkt-tweet (parakeet-tweet-value 'text tweet))
-	 (prkt-source (parakeet-tweet-value 'source tweet))
-	 (prkt-time (parakeet-tweet-value 'created_at tweet))
-	 (prkt-point-start (point)))
+     (prkt-user-name (parakeet-tweet-value 'name prkt-user))
+     (prkt-tweet (parakeet-tweet-value 'text tweet))
+     (prkt-source (parakeet-tweet-value 'source tweet))
+     (prkt-time (parakeet-tweet-value 'created_at tweet))
+     (prkt-point-start (point)))
 
     ;; print the tweet to the buffer
-    (insert (propertize "%tweet-start%" 'invisible 't 'face 
-			(list :foreground (gethash 'user parakeet-theme))))
-    (insert (propertize "%user%" 'invisible 't 'face 
-			(list :foreground (gethash 'user parakeet-theme))))
-    (insert (propertize prkt-user-name 'face 
-			(list :foreground (gethash 'user parakeet-theme))))
+    (insert (propertize "%tweet-start%" 'invisible 't 'face
+            (list :foreground (gethash 'user parakeet-theme))))
+    (insert (propertize "%user%" 'invisible 't 'face
+            (list :foreground (gethash 'user parakeet-theme))))
+    (insert (propertize prkt-user-name 'face
+            (list :foreground (gethash 'user parakeet-theme))))
     (insert (propertize "%user%" 'invisible 't))
     (insert '": ")
     (insert (propertize "%tweet%" 'invisible 't))
-    (insert (propertize prkt-tweet 'face 
-			(list :foreground (gethash 'tweet parakeet-theme))))
+    (insert (propertize prkt-tweet 'face
+            (list :foreground (gethash 'tweet parakeet-theme))))
     (insert (propertize "%tweet%" 'invisible 't))
     (insert (propertize "%meta%" 'invisible 't))
     (insert (propertize
-	     (propertize
-	      (concat '" at " (parakeet-format-twitter-date prkt-time) 
-		      '", from " (parakeet-format-source prkt-source))
-	      'face 'italic) 'face 
-	      (list :foreground (gethash 'meta parakeet-theme))))
+         (propertize
+          (concat '" at " (parakeet-format-twitter-date prkt-time)
+              '", from " (parakeet-format-source prkt-source))
+          'face 'italic) 'face
+          (list :foreground (gethash 'meta parakeet-theme))))
     (insert (propertize "%meta%" 'invisible 't))
     (insert (propertize "%tweet-end%" 'invisible 't))
     (insert (propertize " " 'invisible nil))
@@ -150,64 +175,76 @@ public Twitter timeline.")
 
 (defun parakeet-insert-header (header-in)
   "Insert a header with the supplied text into the current buffer"
-  (insert (propertize 
-	   (propertize (concat "  " header-in "  " 
-			       (parakeet-format-date (current-time)))
-		       'face `(foreground-color . "#FFFFFF"))
-	   'face `(background-color . "#183152")))
+  (insert (propertize
+       (propertize (concat "  " header-in "  "
+                   (parakeet-format-date (current-time)))
+               'face `(foreground-color . "#FFFFFF"))
+       'face `(background-color . "#183152")))
   (newline))
 
-(defun parakeet-print-public-timeline (twitter-data)
-  "Displays the public Twitter timeline"
-  
+(defun parakeet-print-timeline (header twitter-data buffer-name)
+  "Prints the provided Twitter data with the provided header to a
+buffer with the name provided. If that buffer exists already, it
+is killed and re-created."
+
   ;; kill the buffer if it's already extant
-  (if (get-buffer parakeet-public-timeline-buffer-name)
-      (kill-buffer parakeet-public-timeline-buffer-name))
-  
+  (if (get-buffer buffer-name)
+      (kill-buffer buffer-name))
+
   ;; create our new buffer to hold the output
-  (let ((twitter-out (get-buffer-create parakeet-public-timeline-buffer-name)))
+  (let ((twitter-out (get-buffer-create buffer-name)))
     (save-excursion
       (set-buffer twitter-out)
       (parakeet-mode)
       (goto-char (point-min))
 
       ;; insert a header
-      (parakeet-insert-header "Twitter Public Timeline")
+      (parakeet-insert-header header)
       (terpri twitter-out)
 
       ;; loop through the tweets
       (let ((index 0))
-	(while (< index (length twitter-data))
-	  (parakeet-print-tweet (elt twitter-data index))
-	  (terpri twitter-out) (terpri twitter-out)
-	  (setq index (1+ index))))
+    (while (< index (length twitter-data))
+      (parakeet-print-tweet (elt twitter-data index))
+      (terpri twitter-out) (terpri twitter-out)
+      (setq index (1+ index))))
       (setq buffer-read-only t))
 
     ;; switch focus to the new buffer
     (set-window-buffer (selected-window) twitter-out)
     (goto-char (point-min))))
 
-(defun parakeet-public-timeline ()
-  "Displays the public Twitter timeline."
+(defun parakeet-display-timeline (timeline-type)
+  "Displays a timeline of Twitter data to the user through a buffer."
 
   ;; setup variables for the data and any errors
   (let ((prkt-data nil)
-	(error-result nil))
+    (error-result nil))
 
-    ;; warn the user and start fetching the data from the net
-    (with-temp-message "Fetching the public Twitter timeline..."
+    (with-temp-message (gethash timeline-type parakeet-fetch-messages)
       (condition-case error-in
-	  (setq prkt-data (parakeet-public-timeline-data))
-	(error 
-	 (setq error-result error-in))))
-	
+          (setq prkt-data (funcall
+                           (gethash timeline-type parakeet-data-functions)))
+        (error
+         (setq error-result error-in))))
+
     ;; display the data if we have it
     (if (not (null prkt-data))
-	(parakeet-print-public-timeline prkt-data))
+    (parakeet-print-timeline (gethash timeline-type parakeet-headers)
+                             prkt-data
+                             parakeet-public-timeline-buffer-name))
 
     ;; display any errors
     (if error-result
-	(parakeet-handle-error error-result))))
+    (parakeet-handle-error error-result))))
+
+(defun parakeet-public-timeline ()
+  "Displays the public Twitter timeline."
+  (parakeet-display-timeline 'public))
+
+(defun parakeet-friend-timeline ()
+  "Displays your friend Twitter timeline."
+  (parakeet-display-timeline 'friend))
 
 (provide 'parakeet-mode)
 
