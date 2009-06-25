@@ -44,6 +44,12 @@
   :type 'string
   :group 'parakeet)
 
+(defcustom parakeet-curl-args
+  (list "--insecure")
+  "These arguments are passed to curl upon every invocation."
+  :type 'list
+  :group 'parakeet)
+
 ;; Constants
 
 (defconst parakeet-public-timeline-url
@@ -65,7 +71,7 @@
   "Returns the arguments to use when invoking curl to load a
 public Twitter endpoint."
   (append
-   (list "--insecure")
+   parakeet-curl-args
    (if parakeet-socks-proxy
        (list "--socks4" parakeet-socks-proxy))))
 
