@@ -20,8 +20,38 @@
 
 ;; (require 'parakeet)
 
-;; There aren't any nice end-user function yet but I'll get there
-;; someday.
+;; This library requires "libcurl.el". This is a simple wrapper around
+;; the command line version of curl. You can download it from...
+
+;; [provide path to libcurl.el website]
+
+;; This library requires "json.el". You can get this from...
+
+;; http://cvs.savannah.gnu.org/viewvc/*checkout*/emacs/lisp/json.el?root=emacs
+
+;; This library uses (and requires) the "curl" command to interact
+;; with the Twitter webservice and looks for this by using your "PATH"
+;; environment variable. If you are having problems, check this first.
+
+;; Most of the time curl isn't distributed with the root certificates
+;; needed to verify SSL certificates, for this reason the "--insecure"
+;; flag is passed to curl. If your installation does have the root
+;; certificates available, you can override this by setting the
+;; "parakeet-curl-args" variable to nil.
+
+;; (custom-set-variables '(parakeet-defaut-curl-args nil))
+
+;; All of the data returned will be in the form of a list.
+
+;; Functions
+
+;; parakeet-public-timeline-data - Returns public timeline data
+
+;; parakeet-friend-timeline-data - Returns the user's friend timeline
+;; data
+
+;; parakeet-tweet-value (key tweet) - Returns the value with the given
+;; key in the provided tweet.
 
 ;; required packages
 (require 'json)
@@ -44,7 +74,7 @@
   :type 'string
   :group 'parakeet)
 
-(defcustom parakeet-curl-args
+(defcustom parakeet-default-curl-args
   (list "--insecure")
   "These arguments are passed to curl upon every invocation."
   :type 'list
@@ -53,12 +83,27 @@
 ;; Constants
 
 (defconst parakeet-public-timeline-url
-  "https://twitter.com/statuses/public_timeline.json"
+
   "Twitter Public Timeline URL")
 
 (defconst parakeet-friends-timeline-url
-  "https://twitter.com/statuses/friends_timeline.json"
+
   "Twitter Private Friend Timeline")
+
+(defconst parakeet-urls
+  (let ((hash (make-hash-table :test 'eql)))
+    (puthash 'public "http://twitter.com/statuses/public_timeline.json" hash)
+    (puthash 'friend "https://twitter.com/statuses/friends_timeline.json" hash)
+    hash)
+  "A hash of the URL's used to communicate with the Twitter web service.")
+
+(defconst parakeet-curl-args
+  (let ((hash (make-hash-table :test 'eql)))
+    (puthash 'public 'parakeet-public-curl-args hash)
+    (puthash 'friend 'parakeet-private-curl-args hash)
+    hash)
+  "A hash of the arguments that need to be passed to curl when
+  communicating with the Twitter web service.")
 
 ;; Package errors
 
@@ -71,7 +116,7 @@
   "Returns the arguments to use when invoking curl to load a
 public Twitter endpoint."
   (append
-   parakeet-curl-args
+   parakeet-default-curl-args
    (if parakeet-socks-proxy
        (list "--socks4" parakeet-socks-proxy))))
 
@@ -79,22 +124,23 @@ public Twitter endpoint."
   "Returns the arguments to use when invoking curl to load
 private Twitter endpoint that requires authentication."
   (append
-   (list "--insecure")
+   parakeet-default-curl-args
    (list "-u" (concat parakeet-twitter-user ":" parakeet-twitter-password))
    (if parakeet-socks-proxy
        (list "--socks4" parakeet-socks-proxy))))
 
-(defun parakeet-public-timeline-data ()
-  "Returns an array of data that contains the twenty most recent
-tweets on the Twitter public timeline"
+(defun parakeet-timeline-data (timeline-type)
+  "Returns an array of data that contains the most recent tweets
+for the provided timeline type."
 
   ;; setup a variable for the data
   (let ((json-data nil))
     (save-excursion
 
       ;; pass our arguments to curl and grab the returned buffer
-      (let ((buffer-temp (libcurl (parakeet-public-curl-args)
-                  parakeet-public-timeline-url)))
+      (let ((buffer-temp (libcurl
+                          (funcall (gethash timeline-type parakeet-curl-args))
+                  (gethash timeline-type parakeet-urls))))
 
     ;; if curl returns an error, signal an error of our own
     (if (libcurl-errorp buffer-temp)
@@ -110,33 +156,16 @@ tweets on the Twitter public timeline"
         (setq json-data (json-read))
         (kill-buffer buffer-temp)))))
     json-data))
+
+(defun parakeet-public-timeline-data ()
+  "Returns an array of data that contains the twenty most recent
+tweets on the Twitter public timeline"
+  (parakeet-timeline-data 'public))
 
 (defun parakeet-friend-timeline-data ()
   "Returns an array of data that contains the twenty most recent
 tweets from the user's private Twitter friend timeline."
-
-  ;; setup a variable for the data
-  (let ((json-data nil))
-    (save-excursion
-
-      ;; pass our arguments to curl and grab the returned buffer
-      (let ((buffer-temp (libcurl (parakeet-private-curl-args)
-                  parakeet-friends-timeline-url)))
-
-    ;; if curl returns an error, signal an error of our own
-    (if (libcurl-errorp buffer-temp)
-        (let* ((error-message (libcurl-error-code-description
-                   buffer-temp)))
-          (kill-buffer buffer-temp)
-          (signal 'communication-error (list error-message)))
-
-      ;; consume the data in the buffer and then kill it
-      (progn
-        (set-buffer buffer-temp)
-        (goto-char (point-min))
-        (setq json-data (json-read))
-        (kill-buffer buffer-temp)))))
-    json-data))
+  (parakeet-timeline-data 'friend))
 
 (defun parakeet-tweet-value (key tweet)
   "Returns the value that matches the key in the given tweet or

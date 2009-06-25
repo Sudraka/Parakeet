@@ -26,8 +26,10 @@ Twitter right from the comfy confines of your Emacs session.")
 
 ;; This package isn't complete yet. Right now, the following functions
 ;; are available:
-;;
-;; (parakeet-public-timeline) - Displays the public Twitter timeline
+
+;; parakeet-public-timeline - Displays the public Twitter timeline
+
+;; parakeet-friend-timeline - Displays the user's friend timeline
 
 ;; Customizable variables
 
@@ -232,7 +234,7 @@ is killed and re-created."
     (if (not (null prkt-data))
     (parakeet-print-timeline (gethash timeline-type parakeet-headers)
                              prkt-data
-                             parakeet-public-timeline-buffer-name))
+                             (gethash timeline-type parakeet-buffer-names)))
 
     ;; display any errors
     (if error-result
@@ -240,24 +242,12 @@ is killed and re-created."
 
 (defun parakeet-public-timeline ()
   "Displays the public Twitter timeline."
+  (interactive)
   (parakeet-display-timeline 'public))
 
 (defun parakeet-friend-timeline ()
   "Displays your friend Twitter timeline."
+  (interactive)
   (parakeet-display-timeline 'friend))
 
 (provide 'parakeet-mode)
-
-;; Test code starts here!
-
-;(custom-set-variables '(parakeet-socks-proxy nil))
-
-;(parakeet-public-timeline)
-
-;(setq testhash
-;)
-;#<hash-table 'eql nil 5/65 0x16c6c500>
-;(gethash 'user testhash)
-;"#ABCAE2"
-
-
