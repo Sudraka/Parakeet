@@ -66,8 +66,8 @@ Twitter right from the comfy confines of your Emacs session.")
 
 (defconst parakeet-buffer-names
   (let ((hash (make-hash-table :test 'eql)))
-    (puthash 'public "*parakeet-public-timeline*" hash)
-    (puthash 'friend "*parakeet-firend-timeline*" hash)
+    (puthash 'public "*parakeet*" hash)
+    (puthash 'friend "*parakeet*" hash)
     hash)
   "A hash of buffer names for the Twitter output.")
 
@@ -88,10 +88,15 @@ Twitter right from the comfy confines of your Emacs session.")
 ;; required packages
 (require 'parakeet)
 
+;; mode and keybindings
+
 (define-derived-mode parakeet-mode
   text-mode "Parakeet"
   "Major mode for Twitter."
   (setq case-fold-search nil))
+
+(define-key parakeet-mode-map (kbd "C-n") 'parakeet-next-tweet)
+(define-key parakeet-mode-map (kbd "C-p") 'parakeet-previous-tweet)
 
 (put 'parakeet-mode 'mode-class 'special)
 
@@ -177,12 +182,7 @@ Twitter right from the comfy confines of your Emacs session.")
 
 (defun parakeet-insert-header (header-in)
   "Insert a header with the supplied text into the current buffer"
-  (insert (propertize
-       (propertize (concat "  " header-in "  "
-                   (parakeet-format-date (current-time)))
-               'face `(foreground-color . "#FFFFFF"))
-       'face `(background-color . "#183152")))
-  (newline))
+  (setq header-line-format (list (concat " " header-in))))
 
 (defun parakeet-print-timeline (header twitter-data buffer-name)
   "Prints the provided Twitter data with the provided header to a
@@ -249,5 +249,15 @@ is killed and re-created."
   "Displays your friend Twitter timeline."
   (interactive)
   (parakeet-display-timeline 'friend))
+
+(defun parakeet-next-tweet ()
+  "Move point to the beginning of the next tweet."
+  (interactive)
+  (search-forward "%tweet-start%"))
+
+(defun parakeet-previous-tweet ()
+  "Moves the point to the beginning of the previous tweet."
+  (interactive)
+  (search-backward "%tweet-start%"))
 
 (provide 'parakeet-mode)
