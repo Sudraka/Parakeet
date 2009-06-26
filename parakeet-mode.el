@@ -253,7 +253,7 @@ is killed and re-created."
 (defun parakeet-next-tweet ()
   "Move point to the beginning of the next tweet."
   (interactive)
-  (search-forward "%tweet-start%"))
+  (search-forward "%tweet-start%%user%"))
 
 (defun parakeet-previous-tweet ()
   "Moves the point to the beginning of the previous tweet."
