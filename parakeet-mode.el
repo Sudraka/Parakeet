@@ -17,10 +17,17 @@ Twitter right from the comfy confines of your Emacs session.")
 ;; add the following to your initialization file:
 
 ;; (add-to-list 'load-path "~/.emacs.d/site-lisp/parakeet")
-;; (load "~/.emacs.d/site-lisp/parakeet/autoload.el")
+;; (load "~/.emacs.d/site-lisp/parakeet/autoload.el") 
 
-;; That will oad in the parakeet-mode code and get it ready for use if
-;; you have a proxy server, you can set that as well...
+;; That will load in the parakeet-mode code and get it ready for use.
+
+;; You can then set some variable with your Twitter username and
+;; password.
+
+;; (custom-set-variables '(parakeet-twitter-user "SomePerson"))
+;; (custom-set-variables '(parakeet-twitter-password "clever-password"))
+
+;; If you have a proxy SOCKS server, you can set that as well...
 
 ;; (custom-set-variables '(parakeet-socks-proxy "http://localhost:9080"))
 
@@ -98,6 +105,8 @@ Twitter right from the comfy confines of your Emacs session.")
 (define-key parakeet-mode-map (kbd "C-n") 'parakeet-next-tweet)
 (define-key parakeet-mode-map (kbd "C-p") 'parakeet-previous-tweet)
 
+;; the rest of the code
+
 (put 'parakeet-mode 'mode-class 'special)
 
 (defun parakeet-handle-error (error-in)
@@ -110,6 +119,11 @@ Twitter right from the comfy confines of your Emacs session.")
                 (stringp (car (cdr error-in))))
                (car (cdr error-in)))))
   error-in)
+
+(defun parakeet-credentials ()
+  "Returns a list that contains the user's Twitter username and
+password."
+  (list parakeet-twitter-user parakeet-twitter-password))
 
 (defun parakeet-format-twitter-date (date-in)
   "Formats a date from Twitter for display."
@@ -216,7 +230,7 @@ is killed and re-created."
     (set-window-buffer (selected-window) twitter-out)
     (goto-char (point-min))))
 
-(defun parakeet-display-timeline (timeline-type)
+(defun parakeet-display-timeline (timeline-type &optional credentials)
   "Displays a timeline of Twitter data to the user through a buffer."
 
   ;; setup variables for the data and any errors
@@ -226,7 +240,8 @@ is killed and re-created."
     (with-temp-message (gethash timeline-type parakeet-fetch-messages)
       (condition-case error-in
           (setq prkt-data (funcall
-                           (gethash timeline-type parakeet-data-functions)))
+                           (gethash timeline-type parakeet-data-functions)
+			   (parakeet-credentials)))
         (error
          (setq error-result error-in))))
 
@@ -248,7 +263,7 @@ is killed and re-created."
 (defun parakeet-friend-timeline ()
   "Displays your friend Twitter timeline."
   (interactive)
-  (parakeet-display-timeline 'friend))
+  (parakeet-display-timeline 'friend (parakeet-credentials)))
 
 (defun parakeet-next-tweet ()
   "Move point to the beginning of the next tweet."

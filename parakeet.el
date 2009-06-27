@@ -41,6 +41,10 @@
 
 ;; (custom-set-variables '(parakeet-defaut-curl-args nil))
 
+;; The functions that need to authenticate to Twitter are expeciting a
+;; list with the username and password. This list should be in the
+;; format (username password).
+
 ;; All of the data returned will be in the form of a list.
 
 ;; Functions
@@ -97,14 +101,6 @@
     hash)
   "A hash of the URL's used to communicate with the Twitter web service.")
 
-(defconst parakeet-curl-args
-  (let ((hash (make-hash-table :test 'eql)))
-    (puthash 'public 'parakeet-public-curl-args hash)
-    (puthash 'friend 'parakeet-private-curl-args hash)
-    hash)
-  "A hash of the arguments that need to be passed to curl when
-  communicating with the Twitter web service.")
-
 ;; Package errors
 
 ;; this is our general "I can't get Twitter on the line" error
@@ -112,24 +108,17 @@
      'error-conditions
      '(error parakeet-errors 'communication-error))
 
-(defun parakeet-public-curl-args ()
-  "Returns the arguments to use when invoking curl to load a
-public Twitter endpoint."
-  (append
-   parakeet-default-curl-args
-   (if parakeet-socks-proxy
-       (list "--socks4" parakeet-socks-proxy))))
-
-(defun parakeet-private-curl-args ()
+(defun parakeet-curl-args (&optional credentials)
   "Returns the arguments to use when invoking curl to load
 private Twitter endpoint that requires authentication."
   (append
    parakeet-default-curl-args
-   (list "-u" (concat parakeet-twitter-user ":" parakeet-twitter-password))
+   (if credentials
+       (list "-u" (concat parakeet-twitter-user ":" parakeet-twitter-password)))
    (if parakeet-socks-proxy
        (list "--socks4" parakeet-socks-proxy))))
 
-(defun parakeet-timeline-data (timeline-type)
+(defun parakeet-timeline-data (timeline-type &optional credentials)
   "Returns an array of data that contains the most recent tweets
 for the provided timeline type."
 
@@ -139,8 +128,8 @@ for the provided timeline type."
 
       ;; pass our arguments to curl and grab the returned buffer
       (let ((buffer-temp (libcurl
-                          (funcall (gethash timeline-type parakeet-curl-args))
-                  (gethash timeline-type parakeet-urls))))
+                          (parakeet-curl-args credentials)
+			  (gethash timeline-type parakeet-urls))))
 
     ;; if curl returns an error, signal an error of our own
     (if (libcurl-errorp buffer-temp)
@@ -157,15 +146,17 @@ for the provided timeline type."
         (kill-buffer buffer-temp)))))
     json-data))
 
-(defun parakeet-public-timeline-data ()
+(defun parakeet-public-timeline-data (&optional credentials)
   "Returns an array of data that contains the twenty most recent
 tweets on the Twitter public timeline"
-  (parakeet-timeline-data 'public))
+  (parakeet-timeline-data 'public credentials))
 
-(defun parakeet-friend-timeline-data ()
+(defun parakeet-friend-timeline-data (credentials)
   "Returns an array of data that contains the twenty most recent
-tweets from the user's private Twitter friend timeline."
-  (parakeet-timeline-data 'friend))
+tweets from the user's private Twitter friend timeline. To log
+into Twitter, the values in the credentials list will be
+used. They should be in the format (username password)."
+  (parakeet-timeline-data 'friend credentials))
 
 (defun parakeet-tweet-value (key tweet)
   "Returns the value that matches the key in the given tweet or
