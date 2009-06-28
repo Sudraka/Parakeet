@@ -111,14 +111,17 @@ Twitter right from the comfy confines of your Emacs session.")
 
 (defun parakeet-handle-error (error-in)
   "Informs the user that an error occurred via the minibuffer"
-  (message "%s"
-       (concat "I couldn't communicate with Twitter. "
-
-           ;; if we have an error message, display it
-           (if (and (car (cdr error-in))
-                (stringp (car (cdr error-in))))
-               (car (cdr error-in)))))
-  error-in)
+  (let ((error-type (first error-in))
+	(error-message (first (cdr error-in))))
+    
+    (message "%s"
+	     (concat
+	      (if (string= error-type "communication-error")
+		  "There was a problem communicating with Twitter: ")
+	      (if (string= error-type "twitter-error")
+		  "Twitter had a problem: ")
+	      error-message))
+    error-in))
 
 (defun parakeet-credentials ()
   "Returns a list that contains the user's Twitter username and

@@ -108,6 +108,11 @@
      'error-conditions
      '(error parakeet-errors 'communication-error))
 
+;; this covers all error responses from Twitter
+(put 'twitter-error
+     'error-conditions
+     '(error parakeet-errors 'twitter-error))
+
 (defun parakeet-curl-args (&optional credentials)
   "Returns the arguments to use when invoking curl to load
 private Twitter endpoint that requires authentication."
@@ -144,6 +149,10 @@ for the provided timeline type."
         (goto-char (point-min))
         (setq json-data (json-read))
         (kill-buffer buffer-temp)))))
+    
+    ;; check the returned data for errors
+    (if (and (listp json-data) (string= (first (first json-data)) 'error))
+	(signal 'twitter-error (list (cdr (first json-data)))))
     json-data))
 
 (defun parakeet-public-timeline-data (&optional credentials)
