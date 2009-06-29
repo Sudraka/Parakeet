@@ -86,9 +86,15 @@
 
 ;; Constants
 
+(defconst parakeet-source-info
+  (list (list "source" "Parakeet"))
+  "A list that describes the source for posts to the Twitter
+  webservice.")
+
 (defconst parakeet-curl-headers
-  (list "X-Twitter-Client: Parakeet for Emacs"
-	"X-Twitter-Client-Version: 1.0a")
+  (list "X-Twitter-Client: Parakeet"
+	"X-Twitter-Client-Version: 1.0a"
+	"X-Twitter-Client-URL: http://blogs.escapecs.com/parakeet-twitter-info.xml")
   "A list of the headers used when communicating with the Twitter
 web service.")
 
@@ -129,7 +135,8 @@ to the Twitter webservice. The 'data' should be in the format of
 a property list."
   (append
    (parakeet-curl-args credentials)
-   (list "--data" (libcurl-parse-data data))))
+   (list "--request" "POST" "--data" 
+	 (libcurl-parse-data (append parakeet-source-info data)))))
 
 (defun parakeet-timeline-data (timeline-type &optional credentials)
   "Returns an array of data that contains the most recent tweets
