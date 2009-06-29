@@ -107,14 +107,22 @@
      '(error parakeet-errors 'twitter-error))
 
 (defun parakeet-curl-args (&optional credentials)
-  "Returns the arguments to use when invoking curl to load
-private Twitter endpoint that requires authentication."
+  "Returns the arguments to use when invoking curl to load data
+from the Twitter webservice."
   (append
    parakeet-default-curl-args
    (if credentials
        (list "-u" (concat parakeet-twitter-user ":" parakeet-twitter-password)))
    (if parakeet-socks-proxy
        (list "--socks4" parakeet-socks-proxy))))
+
+(defun parakeet-curl-post-args (data &optional credentials)
+  "Returns the arguments to use when invoking curl to post data
+to the Twitter webservice. The 'data' should be in the format of
+a property list."
+  (append
+   (parakeet-curl-args credentials)
+   (list "--data" (libcurl-parse-data data))))
 
 (defun parakeet-timeline-data (timeline-type &optional credentials)
   "Returns an array of data that contains the most recent tweets
@@ -147,6 +155,40 @@ for the provided timeline type."
     (if (and (listp json-data) (string= (first (first json-data)) 'error))
 	(signal 'twitter-error (list (cdr (first json-data)))))
     json-data))
+
+(defun parakeet-post (post-type post-data &optional credentials)
+  "Posts the provided data to the given URL. If credentials are
+provided, they are used. The result from the Twitter webservice
+is returned."
+
+  ;; setup a variable for the data
+  (let ((json-data nil))
+    (save-excursion
+
+      ;; pass our arguments to curl and grab the returned buffer
+      (let ((buffer-temp (libcurl
+                          (parakeet-curl-args credentials)
+			  (gethash timeline-type parakeet-urls))))
+
+    ;; if curl returns an error, signal an error of our own
+    (if (libcurl-errorp buffer-temp)
+        (let* ((error-message (libcurl-error-code-description
+                   buffer-temp)))
+          (kill-buffer buffer-temp)
+          (signal 'communication-error (list error-message)))
+
+      ;; consume the data in the buffer and then kill it
+      (progn
+        (set-buffer buffer-temp)
+        (goto-char (point-min))
+        (setq json-data (json-read))
+        (kill-buffer buffer-temp)))))
+    
+    ;; check the returned data for errors
+    (if (and (listp json-data) (string= (first (first json-data)) 'error))
+	(signal 'twitter-error (list (cdr (first json-data)))))
+    json-data))
+  
 
 (defun parakeet-public-timeline-data (&optional credentials)
   "Returns an array of data that contains the twenty most recent
