@@ -22,11 +22,29 @@ more.")
 ;; There aren't any end-user facing functions in this package, it is
 ;; meant to be used by developers who need to interact with curl.
 
+(defun libcurl-parse-data (data)
+  "Parses a property list of data and returns a list that can be
+handed to curl when posting data to a URL."
+  (let ((post-data nil)
+	(index 0))
+    (while (<= index (length data))
+      (let ((item (car data)))
+	(setq post-data
+	      (concat post-data
+		      (if (not (null post-data))
+			  "&")
+		      (url-hexify-string (car item))
+		      "="
+		      (url-hexify-string (cdr item)))))
+	(setq data (cdr data))
+	(setq index (1+ index)))
+      post-data))
+
 (defun libcurl (args url)
   "Invokes curl with the given arguments and the provided url. A
 new buffer with the result will be returned. Note that all calls
-to curl are made with the '--silent' flag, this is so the output
-is predictable."
+to curl are made with the '--silent' and '--show-error' flagsp,
+this is so the output is predictable."
   (let ((buffer-temp (generate-new-buffer "libcurl-result")))
     (save-excursion
       (apply 'call-process 
