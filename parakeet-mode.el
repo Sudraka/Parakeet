@@ -92,6 +92,10 @@ Twitter right from the comfy confines of your Emacs session.")
     hash)
   "A hash of status messages to display while fetching Twitter data.")
 
+(defconst parakeet-input-buffer-name
+  "*parakeet-input*"
+  "The name of buffers used by Parakeet to collect user input.")
+
 ;; required packages
 (require 'parakeet)
 
@@ -277,5 +281,23 @@ is killed and re-created."
   "Moves the point to the beginning of the previous tweet."
   (interactive)
   (search-backward "%tweet-start%"))
+
+(defun parakeet-status ()
+  "Prompts the user for their current status and posts it to
+Twitter. Returns the window that is expecting input."
+  (interactive)
+
+  ;; kill the input buffer if it's already open
+  (if (get-buffer parakeet-input-buffer-name)
+      (kill-buffer parakeet-input-buffer-name))
+
+  ;; create and open the input buffer
+  (let ((input-buffer (get-buffer-create parakeet-input-buffer-name))
+	(input-window (split-window)))
+    (select-window input-window)
+    (switch-to-buffer input-buffer)
+    (parakeet-mode)
+    (auto-fill-mode)
+    input-window))
 
 (provide 'parakeet-mode)
