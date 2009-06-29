@@ -27,7 +27,7 @@ more.")
   (let ((headers-out nil)
 	(headers-in headers)
 	(index 0))
-    (while (<= index (length headers-in))
+    (while headers-in
       (setq headers-out
 	    (append headers-out
 		    (list "--header" (car headers-in))))
@@ -65,6 +65,19 @@ this is so the output is predictable."
 	     (append 
 	      (list "curl" nil  buffer-temp nil) 
 	      (append '("--silent" "--show-error") args) 
+	      (list url))))
+    buffer-temp))
+
+(defun libcurl-test (args url)
+  "Invokes curl with the given arguments and the provided
+url. This is meant to be used to test that you are getting what
+you expect from curl."
+  (let ((buffer-temp (generate-new-buffer "libcurl-result")))
+    (save-excursion
+      (apply 'call-process 
+	     (append 
+	      (list "curl" nil  buffer-temp nil) 
+	      (append '("--verbose") args) 
 	      (list url))))
     buffer-temp))
 
