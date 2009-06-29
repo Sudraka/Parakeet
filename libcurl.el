@@ -22,6 +22,19 @@ more.")
 ;; There aren't any end-user facing functions in this package, it is
 ;; meant to be used by developers who need to interact with curl.
 
+(defun libcurl-parse-headers (headers)
+  "Returns a formatted list of headers that can be passed to curl."
+  (let ((headers-out nil)
+	(headers-in headers)
+	(index 0))
+    (while (<= index (length headers-in))
+      (setq headers-out
+	    (append headers-out
+		    (list "--header" (car headers-in))))
+      (setq headers-in (cdr headers-in))
+      (setq index (1+ index)))
+    headers-out))
+
 (defun libcurl-parse-data (data-in)
   "Parses a property list of data and returns a list that can be
 handed to curl when posting data to a URL."
