@@ -86,6 +86,12 @@
 
 ;; Constants
 
+(defconst parakeet-curl-headers
+  (list "X-Twitter-Client: Parakeet for Emacs"
+	"X-Twitter-Client-Version: 1.0a")
+  "A list of the headers used when communicating with the Twitter
+web service.")
+
 (defconst parakeet-urls
   (let ((hash (make-hash-table :test 'eql)))
     (puthash 'public "http://twitter.com/statuses/public_timeline.json" hash)
@@ -111,6 +117,7 @@
 from the Twitter webservice."
   (append
    parakeet-default-curl-args
+   (libcurl-parse-headers parakeet-curl-headers)
    (if credentials
        (list "-u" (concat parakeet-twitter-user ":" parakeet-twitter-password)))
    (if parakeet-socks-proxy
