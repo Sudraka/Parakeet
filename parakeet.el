@@ -167,8 +167,10 @@ is returned."
 
       ;; pass our arguments to curl and grab the returned buffer
       (let ((buffer-temp (libcurl
-                          (parakeet-curl-args credentials)
-			  (gethash timeline-type parakeet-urls))))
+                          (parakeet-curl-post-args 
+			   (list (list "status" post-data))
+			   credentials)
+			  (gethash post-type parakeet-urls))))
 
     ;; if curl returns an error, signal an error of our own
     (if (libcurl-errorp buffer-temp)
@@ -188,7 +190,6 @@ is returned."
     (if (and (listp json-data) (string= (first (first json-data)) 'error))
 	(signal 'twitter-error (list (cdr (first json-data)))))
     json-data))
-  
 
 (defun parakeet-public-timeline-data (&optional credentials)
   "Returns an array of data that contains the twenty most recent
