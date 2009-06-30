@@ -300,4 +300,50 @@ Twitter. Returns the window that is expecting input."
     (auto-fill-mode)
     input-window))
 
+(defun parakeet-strip-newlines ()
+  "Removed all of the newlines in the buffer and replaces them
+with a single space."
+  (goto-char (point-min))
+  (while (search-forward "\n" nil t) (replace-match " " nil t)))
+
+(defun parakeet-trim-trailing (text-in)
+  "Trims the whitespace from the end of a string."
+  (when (string-match "[ \t]*" text-in)
+      (message (replace-match "" nil nil text-in))))
+
+(defun parakeet-trim-leading (text-in)
+  "Trims the whitespace from the front of a string."
+  (when (string-match "^[ \t]+" text-in)
+      (message (replace-match "" nil nil text-in))))
+
+(defun parakeet-trim (text-in)
+  "Trims space from the beginning and end of a string."
+  (parakeet-trim-leading (parakeet-trim-trailing text-in)))
+
+(defun parakeet-post-status ()
+  "Grabs the text in the current buffer and uses that text to
+update the current status."
+  (interactive)
+
+  ;; make sure we're in the parakeet input buffer
+  (if (not (string= (buffer-name (current-buffer)) 
+					parakeet-input-buffer-name))
+	  (message "%s" "You can't just post anything as your Twitter status!")
+
+	;; get the buffer text
+	(progn
+	  (parakeet-strip-newlines)
+	  (let ((raw-tweet (parakeet-trim 
+						(buffer-substring-no-properties
+						 (point-min) (point-max)))))
+		(if (not (<= (length raw-tweet) 140))
+			(message "%s" "Your tweet must be 140 characters or less. :(")
+		  (progn
+			(with-temp-message "Updating your Twitter status..."
+			  (parakeet-post 'update raw-tweet (parakeet-credentials))
+			  (set-buffer-modified-p nil)
+			  (delete-windows-on parakeet-input-buffer-name)
+			  (kill-buffer parakeet-input-buffer-name))
+			(message "%s" "Your Twitter status has been updated!")))))))
+
 (provide 'parakeet-mode)
