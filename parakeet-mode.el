@@ -17,7 +17,7 @@ Twitter right from the comfy confines of your Emacs session.")
 ;; add the following to your initialization file:
 
 ;; (add-to-list 'load-path "~/.emacs.d/site-lisp/parakeet")
-;; (load "~/.emacs.d/site-lisp/parakeet/autoload.el") 
+;; (load "~/.emacs.d/site-lisp/parakeet/autoload.el")
 
 ;; That will load in the parakeet-mode code and get it ready for use.
 
@@ -108,6 +108,7 @@ Twitter right from the comfy confines of your Emacs session.")
 
 (define-key parakeet-mode-map (kbd "C-n") 'parakeet-next-tweet)
 (define-key parakeet-mode-map (kbd "C-p") 'parakeet-previous-tweet)
+(define-key parakeet-mode-map (kbd "C-c C-c") 'parakeet-post-status)
 
 ;; the rest of the code
 
@@ -116,15 +117,15 @@ Twitter right from the comfy confines of your Emacs session.")
 (defun parakeet-handle-error (error-in)
   "Informs the user that an error occurred via the minibuffer"
   (let ((error-type (first error-in))
-	(error-message (first (cdr error-in))))
-    
+    (error-message (first (cdr error-in))))
+
     (message "%s"
-	     (concat
-	      (if (string= error-type "communication-error")
-		  "There was a problem communicating with Twitter: ")
-	      (if (string= error-type "twitter-error")
-		  "Twitter had a problem: ")
-	      error-message))
+         (concat
+          (if (string= error-type "communication-error")
+          "There was a problem communicating with Twitter: ")
+          (if (string= error-type "twitter-error")
+          "Twitter had a problem: ")
+          error-message))
     error-in))
 
 (defun parakeet-credentials ()
@@ -248,7 +249,7 @@ is killed and re-created."
       (condition-case error-in
           (setq prkt-data (funcall
                            (gethash timeline-type parakeet-data-functions)
-			   (parakeet-credentials)))
+               (parakeet-credentials)))
         (error
          (setq error-result error-in))))
 
@@ -293,32 +294,29 @@ Twitter. Returns the window that is expecting input."
 
   ;; create and open the input buffer
   (let ((input-buffer (get-buffer-create parakeet-input-buffer-name))
-	(input-window (split-window)))
+    (input-window (split-window)))
     (select-window input-window)
     (switch-to-buffer input-buffer)
     (parakeet-mode)
     (auto-fill-mode)
     input-window))
 
-(defun parakeet-strip-newlines ()
-  "Removed all of the newlines in the buffer and replaces them
-with a single space."
-  (goto-char (point-min))
-  (while (search-forward "\n" nil t) (replace-match " " nil t)))
-
 (defun parakeet-trim-trailing (text-in)
   "Trims the whitespace from the end of a string."
-  (when (string-match "[ \t]*" text-in)
-      (message (replace-match "" nil nil text-in))))
+  (replace-regexp-in-string "[ \t]*$" "" text-in))
+
+(defun parakeet-strip-newlines (text-in)
+  "Removes all of the newlines from the string."
+  (replace-regexp-in-string "[\n]+" " " text-in))
 
 (defun parakeet-trim-leading (text-in)
   "Trims the whitespace from the front of a string."
-  (when (string-match "^[ \t]+" text-in)
-      (message (replace-match "" nil nil text-in))))
+  (replace-regexp-in-string "^[ \t]+" "" text-in))
 
-(defun parakeet-trim (text-in)
+(defun parakeet-strip (text-in)
   "Trims space from the beginning and end of a string."
-  (parakeet-trim-leading (parakeet-trim-trailing text-in)))
+  (parakeet-trim-leading
+   (parakeet-trim-trailing (parakeet-strip-newlines text-in))))
 
 (defun parakeet-post-status ()
   "Grabs the text in the current buffer and uses that text to
@@ -326,24 +324,42 @@ update the current status."
   (interactive)
 
   ;; make sure we're in the parakeet input buffer
-  (if (not (string= (buffer-name (current-buffer)) 
-					parakeet-input-buffer-name))
-	  (message "%s" "You can't just post anything as your Twitter status!")
+  (if (not (string= (buffer-name (current-buffer))
+                    parakeet-input-buffer-name))
+      (message "%s" "You can't just post anything as your Twitter status!")
 
-	;; get the buffer text
-	(progn
-	  (parakeet-strip-newlines)
-	  (let ((raw-tweet (parakeet-trim 
-						(buffer-substring-no-properties
-						 (point-min) (point-max)))))
-		(if (not (<= (length raw-tweet) 140))
-			(message "%s" "Your tweet must be 140 characters or less. :(")
-		  (progn
-			(with-temp-message "Updating your Twitter status..."
-			  (parakeet-post 'update raw-tweet (parakeet-credentials))
-			  (set-buffer-modified-p nil)
-			  (delete-windows-on parakeet-input-buffer-name)
-			  (kill-buffer parakeet-input-buffer-name))
-			(message "%s" "Your Twitter status has been updated!")))))))
+    ;; get the buffer text
+    (progn
+      (let ((raw-tweet (parakeet-trim
+                        (buffer-substring-no-properties
+                         (point-min) (point-max))))
+            (prkt-data nil)
+            (error-result nil))
+
+        ;; make sure our tweet isn't too lengthy
+        (if (not (<= (length raw-tweet) 140))
+            (message "%s" "Your tweet must be 140 characters or less. :(")
+
+          ;; post the new tweet
+          (progn
+            (with-temp-message "Updating your Twitter status..."
+              (condition-case error-in
+                  (setq prkt-data
+                        (parakeet-post 'update raw-tweet
+                                       (parakeet-credentials)))
+                (error
+                 (setq error-result error-in)))
+
+              ;; make sure the tweet posted, then kill the buffer
+              (if (not (null prkt-data))
+                  (progn
+                    (set-buffer-modified-p nil)
+                    (delete-windows-on parakeet-input-buffer-name)
+                    (kill-buffer parakeet-input-buffer-name)
+                    (message "%s" "Your Twitter status has been updated!"))
+
+                ;; let the user know something went wrong
+                (if error-result
+                    (parakeet-handle-error error-result))))))))))
 
 (provide 'parakeet-mode)
