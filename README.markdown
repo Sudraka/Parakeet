@@ -80,4 +80,4 @@ Feedback Appreciated
 If you notice any problems or have any recommendations, please let me know!
 
 
-[0] http://edward.oconnor.cx/2006/03/json.el "json.el Homepage"
+[0]: http://edward.oconnor.cx/2006/03/json.el "json.el Homepage"
