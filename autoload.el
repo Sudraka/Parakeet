@@ -15,4 +15,5 @@
 ;; setup a key bindings
 (global-set-key (kbd "C-c ' p p") 'parakeet-public-timeline)
 (global-set-key (kbd "C-c ' p f") 'parakeet-friend-timeline)
+(global-set-key (kbd "C-c ' p u") 'parakeet-status)
 
