@@ -330,7 +330,7 @@ update the current status."
 
     ;; get the buffer text
     (progn
-      (let ((raw-tweet (parakeet-trim
+      (let ((raw-tweet (parakeet-strip
                         (buffer-substring-no-properties
                          (point-min) (point-max))))
             (prkt-data nil)
