@@ -11,7 +11,8 @@ Requirements
 ------------
 
 You'll need to have the [json.el][0] library available for Parakeet to
-work. That's it!
+work. You'll also need to have [curl][1] in your path. If you are on a
+UNIX-like system, you probably already do.
 
 Installation
 ------------
@@ -81,3 +82,4 @@ If you notice any problems or have any recommendations, please let me know!
 
 
 [0]: http://edward.oconnor.cx/2006/03/json.el "json.el Homepage"
+[1]: http://curl.haxx.se/ "Curl Website"
