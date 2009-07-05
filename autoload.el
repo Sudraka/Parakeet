@@ -9,6 +9,9 @@
 ;; load Parakeet
 (load "parakeet.el")
 
+;; load in utility functions for Parakeet mode
+(load "parakeet-utils.el")
+
 ;; load the Parakeet Mode for viewing tweets
 (load "parakeet-mode.el")
 

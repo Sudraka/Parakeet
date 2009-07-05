@@ -62,6 +62,19 @@ Twitter right from the comfy confines of your Emacs session.")
   :type 'hash-table
   :group 'parakeet-mode)
 
+(defcustom parakeet-mode-initialize-fns
+  (list 'auto-fill-mode)
+  "Functions to call when entering Parakeet mode."
+  :type 'list
+  :group 'parakeet-mode)
+
+(defcustom parakeet-mode-edit-initialize-fns
+  (list 'flyspell-mode)
+  "Functions to call when entering Parakeet edit mode (i.e., to
+post a tweet)."
+  :type 'list
+  :group 'parakeet-mode)
+
 ;; Constants
 
 (defconst parakeet-headers
@@ -98,6 +111,7 @@ Twitter right from the comfy confines of your Emacs session.")
 
 ;; required packages
 (require 'parakeet)
+(require 'parakeet-utils)
 
 ;; mode and keybindings
 
@@ -221,6 +235,7 @@ is killed and re-created."
     (save-excursion
       (set-buffer twitter-out)
       (parakeet-mode)
+      (parakeet-invoke-list parakeet-mode-initialize-fns)
       (goto-char (point-min))
 
       ;; insert a header
@@ -299,8 +314,8 @@ Twitter. Returns the window that is expecting input."
     (select-window input-window)
     (switch-to-buffer input-buffer)
     (parakeet-mode)
-    (auto-fill-mode)
-    (flyspell-mode)
+    (parakeet-invoke-list parakeet-mode-initialize-fns)
+    (parakeet-invoke-list parakeet-mode-edit-initialize-fns)
     input-window))
 
 (defun parakeet-trim-trailing (text-in)
