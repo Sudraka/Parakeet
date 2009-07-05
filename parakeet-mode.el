@@ -108,6 +108,7 @@ Twitter right from the comfy confines of your Emacs session.")
 
 (define-key parakeet-mode-map (kbd "C-n") 'parakeet-next-tweet)
 (define-key parakeet-mode-map (kbd "C-p") 'parakeet-previous-tweet)
+(define-key parakeet-mode-map (kbd "C-c l") 'parakeet-tweet-length-feedback)
 (define-key parakeet-mode-map (kbd "C-c C-c") 'parakeet-post-status)
 
 ;; the rest of the code
@@ -361,5 +362,20 @@ update the current status."
                 ;; let the user know something went wrong
                 (if error-result
                     (parakeet-handle-error error-result))))))))))
+
+(defun parakeet-tweet-length-feedback ()
+  "Provides feedback to the user indicating how long their tweet
+is."
+  (interactive)
+  (save-excursion
+    (let ((prkt-length (length (parakeet-strip
+				(buffer-substring-no-properties
+				 (point-min) (point-max))))))
+      (if (<= 140 prkt-length)
+	  (message "%s" (concat (number-to-string prkt-length)
+				" Your tweet is characters long."))
+	(message "%s" (concat "Your tweet is " 
+			      (number-to-string (- prkt-length 140))
+			      " characters too long!"))))))
 
 (provide 'parakeet-mode)

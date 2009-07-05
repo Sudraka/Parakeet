@@ -50,8 +50,16 @@ Using Parakeet is easy! To post to your Twitter feed...
     C-c ' p u
 
 That's press the "control" key and "c" together, then type apostrophe,
-"p" and "u". A new window will appear and you can type your status
-in. Once you are happy with your status, type...
+"p" and "u". A new window will appear and you can type your status in.
+While you are crafting that perfect tweet, you can check and see how
+long it is by typing...
+
+    C-c l
+
+The length of your tweet will appear in the minibuffer. If your tweet
+is too long, Parakeet will let you know.
+
+Once you are happy with your status, type...
 
     C-c C-c
 
