@@ -299,6 +299,7 @@ Twitter. Returns the window that is expecting input."
     (switch-to-buffer input-buffer)
     (parakeet-mode)
     (auto-fill-mode)
+    (flyspell-mode)
     input-window))
 
 (defun parakeet-trim-trailing (text-in)
