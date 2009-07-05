@@ -66,6 +66,10 @@ Once you are happy with your status, type...
 That's the "control" key and "c", then the "control" key and "c"
 again. Parakeet will post your status and then close the window.
 
+If you want to post a region of text, Parakeet can do that, too:
+
+   C-c ' p s
+
 You can also view your friend's tweets and the public feed.
 
     C-c ' p p   View the public Twitter feed

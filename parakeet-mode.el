@@ -299,10 +299,10 @@ is killed and re-created."
   (interactive)
   (search-backward "%tweet-start%"))
 
-(defun parakeet-status ()
-  "Prompts the user for their current status and posts it to
-Twitter. Returns the window that is expecting input."
-  (interactive)
+(defun parakeet-status-buffer (&optional text-in)
+  "Creates a new buffer for collecting user input. If text-in is
+present, the contents of the variable is inserted into the
+buffer."
 
   ;; kill the input buffer if it's already open
   (if (get-buffer parakeet-input-buffer-name)
@@ -316,7 +316,22 @@ Twitter. Returns the window that is expecting input."
     (parakeet-mode)
     (parakeet-invoke-list parakeet-mode-initialize-fns)
     (parakeet-invoke-list parakeet-mode-edit-initialize-fns)
+    (if (not (null text-in))
+	(insert text-in))
     input-window))
+
+(defun parakeet-status ()
+  "Prompts the user for their current status and posts it to
+Twitter. Returns the window that is expecting input."
+  (interactive)
+  (parakeet-status-buffer))
+
+(defun parakeet-status-region (start end)
+  "Prompts the user for their current status and posts it to
+Twitter. The contents of the selected region is inserted into the
+buffer. Returns the window that is expecting input."
+  (interactive "r")
+  (parakeet-status-buffer (parakeet-region-string start end)))
 
 (defun parakeet-trim-trailing (text-in)
   "Trims the whitespace from the end of a string."

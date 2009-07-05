@@ -17,4 +17,8 @@
       (funcall (car prkt-list-fns))
       (setq prkt-list-fns (cdr prkt-list-fns)))))
 
+(defun parakeet-region-string (start end)
+  "Returns a string that represents the region."
+  (buffer-substring-no-properties start end))
+
 (provide 'parakeet-utils)
