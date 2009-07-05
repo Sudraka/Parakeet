@@ -371,7 +371,7 @@ is."
     (let ((prkt-length (length (parakeet-strip
 				(buffer-substring-no-properties
 				 (point-min) (point-max))))))
-      (if (<= 140 prkt-length)
+      (if (<= prkt-length 140)
 	  (message "%s" (concat (number-to-string prkt-length)
 				" Your tweet is characters long."))
 	(message "%s" (concat "Your tweet is " 
