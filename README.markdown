@@ -68,7 +68,7 @@ again. Parakeet will post your status and then close the window.
 
 If you want to post a region of text, Parakeet can do that, too:
 
-   C-c ' p s
+   C-c ' p U
 
 You can also view your friend's tweets and the public feed.
 
@@ -77,6 +77,19 @@ You can also view your friend's tweets and the public feed.
 
 When you are viewing the feeds, you can press "C-n" and "C-p" to move
 up and down a tweet at a time.
+
+Advanced Usage
+--------------
+
+Whenever Parakeet opens a new window for you to type your status into,
+it switches to Parakeet mode, activates auto-fill mode and flyspell
+mode. You can customize this behavior if you wish. Customize the
+variable...
+
+    parakeet-mode-edit-initialize-fns
+
+This variable should contain a list of functions to invoke (without
+any arguments) every time Parakeet readies a new user-input window.
 
 Future Plans
 ------------
