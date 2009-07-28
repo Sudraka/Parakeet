@@ -9,6 +9,9 @@
 ;; load Parakeet
 (load "parakeet.el")
 
+;; load in utility functions for Parakeet mode
+(load "parakeet-utils.el")
+
 ;; load the Parakeet Mode for viewing tweets
 (load "parakeet-mode.el")
 
@@ -16,4 +19,4 @@
 (global-set-key (kbd "C-c ' p p") 'parakeet-public-timeline)
 (global-set-key (kbd "C-c ' p f") 'parakeet-friend-timeline)
 (global-set-key (kbd "C-c ' p u") 'parakeet-status)
-
+(global-set-key (kbd "C-c ' p U") 'parakeet-status-region)

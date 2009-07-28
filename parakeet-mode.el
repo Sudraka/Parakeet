@@ -62,6 +62,19 @@ Twitter right from the comfy confines of your Emacs session.")
   :type 'hash-table
   :group 'parakeet-mode)
 
+(defcustom parakeet-mode-initialize-fns
+  (list 'auto-fill-mode)
+  "Functions to call when entering Parakeet mode."
+  :type 'list
+  :group 'parakeet-mode)
+
+(defcustom parakeet-mode-edit-initialize-fns
+  (list 'flyspell-mode)
+  "Functions to call when entering Parakeet edit mode (i.e., to
+post a tweet)."
+  :type 'list
+  :group 'parakeet-mode)
+
 ;; Constants
 
 (defconst parakeet-headers
@@ -98,6 +111,7 @@ Twitter right from the comfy confines of your Emacs session.")
 
 ;; required packages
 (require 'parakeet)
+(require 'parakeet-utils)
 
 ;; mode and keybindings
 
@@ -221,6 +235,7 @@ is killed and re-created."
     (save-excursion
       (set-buffer twitter-out)
       (parakeet-mode)
+      (parakeet-invoke-list parakeet-mode-initialize-fns)
       (goto-char (point-min))
 
       ;; insert a header
@@ -284,10 +299,10 @@ is killed and re-created."
   (interactive)
   (search-backward "%tweet-start%"))
 
-(defun parakeet-status ()
-  "Prompts the user for their current status and posts it to
-Twitter. Returns the window that is expecting input."
-  (interactive)
+(defun parakeet-status-buffer (&optional text-in)
+  "Creates a new buffer for collecting user input. If text-in is
+present, the contents of the variable is inserted into the
+buffer."
 
   ;; kill the input buffer if it's already open
   (if (get-buffer parakeet-input-buffer-name)
@@ -299,9 +314,24 @@ Twitter. Returns the window that is expecting input."
     (select-window input-window)
     (switch-to-buffer input-buffer)
     (parakeet-mode)
-    (auto-fill-mode)
-    (flyspell-mode)
+    (parakeet-invoke-list parakeet-mode-initialize-fns)
+    (parakeet-invoke-list parakeet-mode-edit-initialize-fns)
+    (if (not (null text-in))
+	(insert text-in))
     input-window))
+
+(defun parakeet-status ()
+  "Prompts the user for their current status and posts it to
+Twitter. Returns the window that is expecting input."
+  (interactive)
+  (parakeet-status-buffer))
+
+(defun parakeet-status-region (start end)
+  "Prompts the user for their current status and posts it to
+Twitter. The contents of the selected region is inserted into the
+buffer. Returns the window that is expecting input."
+  (interactive "r")
+  (parakeet-status-buffer (parakeet-region-string start end)))
 
 (defun parakeet-trim-trailing (text-in)
   "Trims the whitespace from the end of a string."
