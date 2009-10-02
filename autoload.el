@@ -4,16 +4,10 @@
 ;; This file is not a part of GNU Emacs.
 
 ;; load libraries
-(load "libcurl.el")
-
-;; load Parakeet
-(load "parakeet.el")
-
-;; load in utility functions for Parakeet mode
-(load "parakeet-utils.el")
-
-;; load the Parakeet Mode for viewing tweets
-(load "parakeet-mode.el")
+(require 'libcurl)
+(require 'parakeet)
+(require 'parakeet-utils)
+(require 'parakeet-mode)
 
 ;; setup a key bindings
 (global-set-key (kbd "C-c ' p p") 'parakeet-public-timeline)
