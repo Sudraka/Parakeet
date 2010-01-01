@@ -68,7 +68,7 @@ again. Parakeet will post your status and then close the window.
 
 If you want to post a region of text, Parakeet can do that, too:
 
-   C-c ' p U
+    C-c ' p U
 
 You can also view your friend's tweets and the public feed.
 
