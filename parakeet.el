@@ -103,6 +103,7 @@ web service.")
     (puthash 'public "http://twitter.com/statuses/public_timeline.json" hash)
     (puthash 'friend "https://twitter.com/statuses/friends_timeline.json" hash)
     (puthash 'update "https://twitter.com/statuses/update.json" hash)
+    (puthash 'user "http://twitter.com/statuses/user_timeline/" hash)
     hash)
   "A hash of the URL's used to communicate with the Twitter web service.")
 
@@ -138,7 +139,7 @@ a property list."
    (list "--request" "POST" "--data" 
 	 (libcurl-parse-data (append parakeet-source-info data)))))
 
-(defun parakeet-timeline-data (timeline-type &optional credentials)
+(defun parakeet-timeline-data (timeline-type &optional credentials username)
   "Returns an array of data that contains the most recent tweets
 for the provided timeline type."
 
@@ -149,7 +150,13 @@ for the provided timeline type."
       ;; pass our arguments to curl and grab the returned buffer
       (let ((buffer-temp (libcurl
                           (parakeet-curl-args credentials)
-			  (gethash timeline-type parakeet-urls))))
+                          (if (string= timeline-type 'user)
+                              (if username
+                                  (concat (gethash timeline-type parakeet-urls)
+                                          username ".json")
+                                (signal 'bad-input-error
+                                        (list "I need the name of a person's timline to display!")))
+                            (gethash timeline-type parakeet-urls)))))
 
     ;; if curl returns an error, signal an error of our own
     (if (libcurl-errorp buffer-temp)
@@ -216,6 +223,11 @@ tweets from the user's private Twitter friend timeline. To log
 into Twitter, the values in the credentials list will be
 used. They should be in the format (username password)."
   (parakeet-timeline-data 'friend credentials))
+
+(defun parakeet-user-timeline-data (credentials username)
+  "Returns an array of data that contains the twenty most recent
+  tweets from the user's public timeline."
+  (parakeet-timeline-data 'user credentials username))
 
 (defun parakeet-tweet-value (key tweet)
   "Returns the value that matches the key in the given tweet or

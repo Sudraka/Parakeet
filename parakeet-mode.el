@@ -79,8 +79,12 @@ post a tweet)."
 
 (defconst parakeet-headers
   (let ((hash (make-hash-table :test 'eql)))
-    (puthash 'public "Twitter Public Timeline" hash)
-    (puthash 'friend "Twitter Friend Timeline" hash)
+    (puthash 'public (lambda (&optional arguments)
+                       "Twitter Public Timeline")  hash)
+    (puthash 'friend (lambda (&optional arguments)
+                       "Twitter Friend Timeline") hash)
+    (puthash 'user (lambda (arguments)
+                     (concat "Twitter Timeline for " arguments)) hash)
     hash)
   "A hash of headings for the Twitter output.")
 
@@ -88,6 +92,7 @@ post a tweet)."
   (let ((hash (make-hash-table :test 'eql)))
     (puthash 'public "*parakeet*" hash)
     (puthash 'friend "*parakeet*" hash)
+    (puthash 'user "*parakeet*" hash)
     hash)
   "A hash of buffer names for the Twitter output.")
 
@@ -95,6 +100,7 @@ post a tweet)."
   (let ((hash (make-hash-table :test 'eql)))
     (puthash 'public 'parakeet-public-timeline-data hash)
     (puthash 'friend 'parakeet-friend-timeline-data hash)
+    (puthash 'user 'parakeet-user-timeline-data hash)
     hash)
   "A hash of functions that retrieve Twitter data.")
 
@@ -102,6 +108,7 @@ post a tweet)."
   (let ((hash (make-hash-table :test 'eql)))
     (puthash 'public "Fetching the public Twitter timeline..." hash)
     (puthash 'friend "Fetching your friend Twitter timeline..." hash)
+    (puthash 'user "Fetching the person's Twitter timeline..." hash)
     hash)
   "A hash of status messages to display while fetching Twitter data.")
 
@@ -137,9 +144,11 @@ post a tweet)."
     (message "%s"
          (concat
           (if (string= error-type "communication-error")
-          "There was a problem communicating with Twitter: ")
+              "There was a problem communicating with Twitter: ")
           (if (string= error-type "twitter-error")
-          "Twitter had a problem: ")
+              "Twitter had a problem: ")
+          (if (string= error-type "bad-input-error")
+              "I had a problem: ")
           error-message))
     error-in))
 
@@ -257,30 +266,31 @@ is killed and re-created."
     ;; switch focus to the new buffer
     (set-window-buffer (selected-window) twitter-out)))
 
-(defun parakeet-display-timeline (timeline-type &optional credentials)
+(defun parakeet-display-timeline (timeline-type &optional arguments)
   "Displays a timeline of Twitter data to the user through a buffer."
 
   ;; setup variables for the data and any errors
   (let ((prkt-data nil)
-    (error-result nil))
+        (error-result nil))
 
     (with-temp-message (gethash timeline-type parakeet-fetch-messages)
       (condition-case error-in
           (setq prkt-data (funcall
                            (gethash timeline-type parakeet-data-functions)
-               (parakeet-credentials)))
+                           (parakeet-credentials) arguments))
         (error
          (setq error-result error-in))))
 
     ;; display the data if we have it
     (if (not (null prkt-data))
-    (parakeet-print-timeline (gethash timeline-type parakeet-headers)
-                             prkt-data
-                             (gethash timeline-type parakeet-buffer-names)))
+        (parakeet-print-timeline
+         (funcall (gethash timeline-type parakeet-headers) arguments)
+         prkt-data
+         (gethash timeline-type parakeet-buffer-names)))
 
     ;; display any errors
     (if error-result
-    (parakeet-handle-error error-result))))
+        (parakeet-handle-error error-result))))
 
 (defun parakeet-public-timeline ()
   "Displays the public Twitter timeline."
@@ -291,6 +301,11 @@ is killed and re-created."
   "Displays your friend Twitter timeline."
   (interactive)
   (parakeet-display-timeline 'friend (parakeet-credentials)))
+
+(defun parakeet-user-timeline (username)
+  "Displays the Twitter timeline of the specified user."
+  (interactive "MTwitter User's screen name: ")
+  (parakeet-display-timeline 'user username))
 
 (defun parakeet-next-tweet ()
   "Move point to the beginning of the next tweet."

@@ -78,6 +78,14 @@ You can also view your friend's tweets and the public feed.
 When you are viewing the feeds, you can press "C-n" and "C-p" to move
 up and down a tweet at a time.
 
+If you want to see the time line of a specific user, you can do that
+as well.
+
+    C-c 'p n    View a specific person's Twitter feed
+
+You will be prompted for a screen name (i.e. "cmiles74", not
+"Christopher Miles").
+
 Advanced Usage
 --------------
 
