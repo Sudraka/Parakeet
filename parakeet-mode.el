@@ -244,15 +244,18 @@ is killed and re-created."
 
       ;; loop through the tweets
       (let ((index 0))
-    (while (< index (length twitter-data))
-      (parakeet-print-tweet (elt twitter-data index))
-      (terpri twitter-out) (terpri twitter-out)
-      (setq index (1+ index))))
+        (while (< index (length twitter-data))
+          (parakeet-print-tweet (elt twitter-data index))
+          (terpri twitter-out) (terpri twitter-out)
+          (setq index (1+ index))))
+
+      ;; move to the top of the buffer, set read-only
+      (goto-line 2)
+      (recenter)
       (setq buffer-read-only t))
 
     ;; switch focus to the new buffer
-    (set-window-buffer (selected-window) twitter-out)
-    (goto-char (point-min))))
+    (set-window-buffer (selected-window) twitter-out)))
 
 (defun parakeet-display-timeline (timeline-type &optional credentials)
   "Displays a timeline of Twitter data to the user through a buffer."
