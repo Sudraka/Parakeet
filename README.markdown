@@ -106,7 +106,9 @@ Well, I have some plans and this is really the barest bones of what a
 Twitter client should be. I'd like to add some functions for viewing
 just one account's feed as well as functions for re-tweeting, replying
 and direct messaging. Functions to automatically shorten URL's (using
-aservice like Bit.ly) are also high on my to-do list.
+a service like Bit.ly) are also high on my to-do list.
+
+If you use Parakeet and have a feature you'd like, drop me an e-mail. ;)
 
 Feedback Appreciated
 --------------------
