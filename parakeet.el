@@ -119,6 +119,11 @@ web service.")
      'error-conditions
      '(error parakeet-errors 'twitter-error))
 
+;; errors where the user types in something crazy
+(put 'bad-input-error
+     'error-conditions
+     '(error parakeet-errors 'twitter-error))
+
 (defun parakeet-curl-args (&optional credentials)
   "Returns the arguments to use when invoking curl to load data
 from the Twitter webservice."
@@ -151,11 +156,11 @@ for the provided timeline type."
       (let ((buffer-temp (libcurl
                           (parakeet-curl-args credentials)
                           (if (string= timeline-type 'user)
-                              (if username
+                              (if (< 0 (length username))
                                   (concat (gethash timeline-type parakeet-urls)
                                           username ".json")
                                 (signal 'bad-input-error
-                                        (list "I need the name of a person's timline to display!")))
+                                        (list "I need the name of a person's timeline to display!")))
                             (gethash timeline-type parakeet-urls)))))
 
     ;; if curl returns an error, signal an error of our own
