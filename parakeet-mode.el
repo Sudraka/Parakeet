@@ -129,6 +129,7 @@ post a tweet)."
 
 (define-key parakeet-mode-map (kbd "C-n") 'parakeet-next-tweet)
 (define-key parakeet-mode-map (kbd "C-p") 'parakeet-previous-tweet)
+(define-key parakeet-mode-map (kbd "C-v") 'parakeet-next-user-timeline)
 (define-key parakeet-mode-map (kbd "C-c l") 'parakeet-tweet-length-feedback)
 (define-key parakeet-mode-map (kbd "C-c C-c") 'parakeet-post-status)
 
@@ -264,6 +265,7 @@ is killed and re-created."
 
       ;; move to the top of the buffer, set read-only
       (goto-line 2)
+      (beginning-of-line)
       (recenter)
       (setq buffer-read-only t))
 
@@ -320,6 +322,15 @@ is killed and re-created."
   "Moves the point to the beginning of the previous tweet."
   (interactive)
   (search-backward "%tweet-start%"))
+
+(defun parakeet-next-user-timeline ()
+  "Displays the timeline of the next user in the timeline buffer."
+  (interactive)
+
+  ;; get the next username
+  (search-forward-regexp "%screen_name%\\([_-A-Za-z0-9]+\\)%screen_name%")
+  (let ((username (match-string-no-properties 1)))
+    (parakeet-user-timeline username)))
 
 (defun parakeet-status-buffer (&optional text-in)
   "Creates a new buffer for collecting user input. If text-in is
