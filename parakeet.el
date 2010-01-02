@@ -222,7 +222,7 @@ is returned."
 tweets on the Twitter public timeline"
   (parakeet-timeline-data 'public credentials))
 
-(defun parakeet-friend-timeline-data (credentials)
+(defun parakeet-friend-timeline-data (credentials &optional username)
   "Returns an array of data that contains the twenty most recent
 tweets from the user's private Twitter friend timeline. To log
 into Twitter, the values in the credentials list will be
