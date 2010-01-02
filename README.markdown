@@ -76,7 +76,12 @@ You can also view your friend's tweets and the public feed.
     C-c ' p f   View your friend Twitter feed
 
 When you are viewing the feeds, you can press "C-n" and "C-p" to move
-up and down a tweet at a time.
+up and down a tweet at a time. If you want to view more tweets, move
+to a line and press "C-v" to view more tweets from that person.
+
+    C-n   Move to the next tweet
+    C-p   Move to the previous tweet
+    C-v   View recent tweets from the user at point
 
 If you want to see the time line of a specific user, you can do that
 as well.

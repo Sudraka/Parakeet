@@ -209,9 +209,9 @@ password."
     (insert (propertize prkt-user-name 'face
             (list :foreground (gethash 'user parakeet-theme))))
     (insert (propertize "%user%" 'invisible 't))
-    (insert (propertize "%screen_name%" 'invisible 't))
+    (insert (propertize "%screen-name%" 'invisible 't))
     (insert (propertize prkt-screen-name 'invisible 't))
-    (insert (propertize "%screen_name%" 'invisible 't))
+    (insert (propertize "%screen-name%" 'invisible 't))
     (insert '": ")
     (insert (propertize "%tweet%" 'invisible 't))
     (insert (propertize prkt-tweet 'face
@@ -326,11 +326,9 @@ is killed and re-created."
 (defun parakeet-next-user-timeline ()
   "Displays the timeline of the next user in the timeline buffer."
   (interactive)
-
-  ;; get the next username
-  (search-forward-regexp "%screen_name%\\([_-A-Za-z0-9]+\\)%screen_name%")
-  (let ((username (match-string-no-properties 1)))
-    (parakeet-user-timeline username)))
+  (search-forward-regexp "%screen-name%\\(\\w+\\)%screen-name%")
+  (let ((screen-name (match-string-no-properties 1)))
+    (parakeet-user-timeline screen-name)))
 
 (defun parakeet-status-buffer (&optional text-in)
   "Creates a new buffer for collecting user input. If text-in is
