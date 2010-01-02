@@ -193,11 +193,12 @@ password."
 
   ;; pull our variables from the tweet
   (let* ((prkt-user (parakeet-tweet-value 'user tweet))
-     (prkt-user-name (parakeet-tweet-value 'name prkt-user))
-     (prkt-tweet (parakeet-tweet-value 'text tweet))
-     (prkt-source (parakeet-tweet-value 'source tweet))
-     (prkt-time (parakeet-tweet-value 'created_at tweet))
-     (prkt-point-start (point)))
+         (prkt-user-name (parakeet-tweet-value 'name prkt-user))
+         (prkt-screen-name (parakeet-tweet-value 'screen_name prkt-user))
+         (prkt-tweet (parakeet-tweet-value 'text tweet))
+         (prkt-source (parakeet-tweet-value 'source tweet))
+         (prkt-time (parakeet-tweet-value 'created_at tweet))
+         (prkt-point-start (point)))
 
     ;; print the tweet to the buffer
     (insert (propertize "%tweet-start%" 'invisible 't 'face
@@ -207,6 +208,9 @@ password."
     (insert (propertize prkt-user-name 'face
             (list :foreground (gethash 'user parakeet-theme))))
     (insert (propertize "%user%" 'invisible 't))
+    (insert (propertize "%screen_name%" 'invisible 't))
+    (insert (propertize prkt-screen-name 'invisible 't))
+    (insert (propertize "%screen_name%" 'invisible 't))
     (insert '": ")
     (insert (propertize "%tweet%" 'invisible 't))
     (insert (propertize prkt-tweet 'face
