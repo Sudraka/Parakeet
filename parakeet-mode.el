@@ -148,7 +148,7 @@ post a tweet)."
               "There was a problem communicating with Twitter: ")
           (if (string= error-type "twitter-error")
               "Twitter had a problem: ")
-          (if (string= error-type "bad-input-error")
+          (if (string= error-type "parakeet-error")
               "I had a problem: ")
           error-message))
     error-in))

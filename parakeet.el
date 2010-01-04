@@ -122,7 +122,7 @@ web service.")
 ;; errors where the user types in something crazy
 (put 'bad-input-error
      'error-conditions
-     '(error parakeet-errors 'twitter-error))
+     '(error parakeet-errors 'parakeet-error))
 
 (defun parakeet-curl-args (&optional credentials)
   "Returns the arguments to use when invoking curl to load data
