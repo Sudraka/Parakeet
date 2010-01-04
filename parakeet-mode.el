@@ -69,7 +69,7 @@ Twitter right from the comfy confines of your Emacs session.")
   :group 'parakeet-mode)
 
 (defcustom parakeet-mode-edit-initialize-fns
-  (list 'flyspell-mode)
+  (list (lambda () (flyspell-mode 1)))
   "Functions to call when entering Parakeet edit mode (i.e., to
 post a tweet)."
   :type 'list
@@ -250,6 +250,10 @@ is killed and re-created."
       (set-buffer twitter-out)
       (parakeet-mode)
       (parakeet-invoke-list parakeet-mode-initialize-fns)
+
+      ;; make sure flyspell mode is off
+      (flyspell-mode -1)
+      
       (goto-char (point-min))
 
       ;; insert a header
