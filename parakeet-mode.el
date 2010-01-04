@@ -269,7 +269,7 @@ is killed and re-created."
 
       ;; move to the top of the buffer, set read-only
       (goto-line 2)
-      (beginning-of-line)
+      (parakeet-next-tweet)
       (recenter)
       (setq buffer-read-only t))
 
@@ -325,7 +325,8 @@ is killed and re-created."
 (defun parakeet-previous-tweet ()
   "Moves the point to the beginning of the previous tweet."
   (interactive)
-  (search-backward "%tweet-start%"))
+  (search-backward "\n%tweet-start%")
+  (forward-line))
 
 (defun parakeet-next-user-timeline ()
   "Displays the timeline of the next user in the timeline buffer."
