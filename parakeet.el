@@ -105,7 +105,15 @@ web service.")
     (puthash 'update "https://twitter.com/statuses/update.json" hash)
     (puthash 'user "http://twitter.com/statuses/user_timeline/" hash)
     hash)
-  "A hash of the URL's used to communicate with the Twitter web service.")
+  "A hash of the URL's that return timeline data. These are used
+  to communicate with the Twitter web service.")
+
+(defconst parakeet-user-urls
+  (let ((hash (make-hash-table :test 'eql)))
+    (puthash 'show "http://twitter.com/users/show/" hash)
+    hash)
+  "A hash of the URL's that return user data. These are used to
+  communication with the Twitter web service.")
 
 ;; Package errors
 
@@ -198,19 +206,19 @@ is returned."
 			   credentials)
 			  (gethash post-type parakeet-urls))))
 
-    ;; if curl returns an error, signal an error of our own
-    (if (libcurl-errorp buffer-temp)
-        (let* ((error-message (libcurl-error-code-description
-                   buffer-temp)))
-          (kill-buffer buffer-temp)
-          (signal 'communication-error (list error-message)))
+        ;; if curl returns an error, signal an error of our own
+        (if (libcurl-errorp buffer-temp)
+            (let* ((error-message (libcurl-error-code-description
+                                   buffer-temp)))
+              (kill-buffer buffer-temp)
+              (signal 'communication-error (list error-message)))
 
-      ;; consume the data in the buffer and then kill it
-      (progn
-        (set-buffer buffer-temp)
-        (goto-char (point-min))
-        (setq json-data (json-read))
-        (kill-buffer buffer-temp)))))
+          ;; consume the data in the buffer and then kill it
+          (progn
+            (set-buffer buffer-temp)
+            (goto-char (point-min))
+            (setq json-data (json-read))
+            (kill-buffer buffer-temp)))))
     
     ;; check the returned data for errors
     (if (and (listp json-data) (string= (first (first json-data)) 'error))
@@ -254,5 +262,42 @@ key."
         (setq tweet-in nil))
     (setq tweet-in (cdr tweet-in))))
     result))
+
+(defun parakeet-user-data (query-type username &optional credentials)
+  "Returns an array of data that contains the extended
+  information about the user."
+
+  ;; setup a variable for the data
+  (let ((json-data nil))
+    (save-excursion
+
+      ;; pass our arguments to curl and grab the returned buffer
+      (let ((buffer-temp (libcurl
+                          (parakeet-curl-args credentials)
+                          (concat (gethash query-type parakeet-user-urls)
+                                  username ".json"))))
+
+        ;; if curl returns an error, signal an error of our own
+        (if (libcurl-errorp buffer-temp)
+            (let* ((error-message (libcurl-error-code-description
+                                   buffer-temp)))
+              (kill-buffer buffer-temp)
+              (signal 'communication-error (list error-message)))
+
+          ;; consume the data in the buffer and then kill it
+          (progn
+            (set-buffer buffer-temp)
+            (goto-char (point-min))
+            (setq json-data (json-read))
+            (kill-buffer buffer-temp)))))
+
+    ;; check the returned data for errors
+    (if (and (listp json-data) (string= (first (first json-data)) 'error))
+	(signal 'twitter-error (list (cdr (first json-data)))))
+    json-data))
+
+(defun parakeet-user-show (username &optional credentials)
+  "Returns a hash table containing the provided user's extended information."
+  (parakeet-user-data 'show username))
 
 (provide 'parakeet)

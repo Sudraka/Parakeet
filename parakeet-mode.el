@@ -231,11 +231,29 @@ password."
     ;; fill the paragraph
     (fill-region prkt-point-start (point))))
 
+(defun parakeet-print-user-info (user-data)
+  "Inserts a summary of the user's extended data into the current buffer."
+
+  ;; pull our variables from the user-data
+  (let* ((prkt-user (parakeet-tweet-value 'screen_name user-data))
+         (prkt-name (parakeet-tweet-value 'name user-data)))
+
+    ;; print the user's extended information
+
+    (insert "Viewing the feed for ")
+    (insert (propertize "%name%" 'invisible 't 'face))
+    (insert (propertize prkt-name 'face
+                        (list :foreground (gethash 'user parakeet-theme))))
+    (insert (propertize "%name%" 'invisible 't 'face))
+
+    ;; fill the paragraph
+    (fill-region prkt-point-start (point))))
+
 (defun parakeet-insert-header (header-in)
   "Insert a header with the supplied text into the current buffer"
   (setq header-line-format (list (concat " " header-in))))
 
-(defun parakeet-print-timeline (header twitter-data buffer-name)
+(defun parakeet-print-timeline (header twitter-data user-data buffer-name)
   "Prints the provided Twitter data with the provided header to a
 buffer with the name provided. If that buffer exists already, it
 is killed and re-created."
@@ -260,6 +278,10 @@ is killed and re-created."
       (parakeet-insert-header header)
       (terpri twitter-out)
 
+      ;; display extended user information, if we have it
+      (if user-data
+          (parakeet-print-user-info user-data))
+      
       ;; loop through the tweets
       (let ((index 0))
         (while (< index (length twitter-data))
@@ -280,14 +302,22 @@ is killed and re-created."
   "Displays a timeline of Twitter data to the user through a buffer."
 
   ;; setup variables for the data and any errors
-  (let ((prkt-data nil)
+  (let ((prkt-user-data nil)
+        (prkt-data nil)
         (error-result nil))
 
     (with-temp-message (gethash timeline-type parakeet-fetch-messages)
       (condition-case error-in
+
           (setq prkt-data (funcall
                            (gethash timeline-type parakeet-data-functions)
                            (parakeet-credentials) arguments))
+
+        (if (string= 'friend timeline-type)
+            (setq prkt-user-data (parakeet-user-data
+                                  arguments
+                                  (parakeet-credentials))))
+        
         (error
          (setq error-result error-in))))
 
@@ -296,6 +326,7 @@ is killed and re-created."
         (parakeet-print-timeline
          (funcall (gethash timeline-type parakeet-headers) arguments)
          prkt-data
+         prkt-user-data
          (gethash timeline-type parakeet-buffer-names)))
 
     ;; display any errors
