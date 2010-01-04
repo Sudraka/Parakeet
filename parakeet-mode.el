@@ -129,7 +129,7 @@ post a tweet)."
 
 (define-key parakeet-mode-map (kbd "C-n") 'parakeet-next-tweet)
 (define-key parakeet-mode-map (kbd "C-p") 'parakeet-previous-tweet)
-(define-key parakeet-mode-map (kbd "C-v") 'parakeet-next-user-timeline)
+(define-key parakeet-mode-map (kbd "RET") 'parakeet-next-user-timeline)
 (define-key parakeet-mode-map (kbd "C-c l") 'parakeet-tweet-length-feedback)
 (define-key parakeet-mode-map (kbd "C-c C-c") 'parakeet-post-status)
 
