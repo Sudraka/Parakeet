@@ -101,7 +101,7 @@ web service.")
 (defconst parakeet-urls
   (let ((hash (make-hash-table :test 'eql)))
     (puthash 'public "http://twitter.com/statuses/public_timeline.json" hash)
-    (puthash 'friend "https://twitter.com/statuses/friends_timeline.json" hash)
+    (puthash 'friend "https://twitter.com/statuses/home_timeline.json" hash)
     (puthash 'update "https://twitter.com/statuses/update.json" hash)
     (puthash 'user "http://twitter.com/statuses/user_timeline/" hash)
     hash)
